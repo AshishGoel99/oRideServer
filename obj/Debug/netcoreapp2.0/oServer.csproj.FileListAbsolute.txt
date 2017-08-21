@@ -1,0 +1,10 @@
+t:\oServer\bin\Debug\netcoreapp2.0\oServer.deps.json
+t:\oServer\bin\Debug\netcoreapp2.0\oServer.runtimeconfig.json
+t:\oServer\bin\Debug\netcoreapp2.0\oServer.runtimeconfig.dev.json
+t:\oServer\bin\Debug\netcoreapp2.0\oServer.dll
+t:\oServer\bin\Debug\netcoreapp2.0\oServer.pdb
+t:\oServer\obj\Debug\netcoreapp2.0\oServer.csproj.CoreCompileInputs.cache
+t:\oServer\obj\Debug\netcoreapp2.0\oServer.AssemblyInfoInputs.cache
+t:\oServer\obj\Debug\netcoreapp2.0\oServer.AssemblyInfo.cs
+t:\oServer\obj\Debug\netcoreapp2.0\oServer.dll
+t:\oServer\obj\Debug\netcoreapp2.0\oServer.pdb
