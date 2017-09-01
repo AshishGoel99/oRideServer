@@ -6,18 +6,35 @@ using oServer.DbModels;
 
 namespace oServer
 {
-    public class DataAccess
+    public sealed class DataAccess
     {
-        MongoClient _client;
-        MongoServer _server;
-        MongoDatabase _db;
+        // MongoClient _client;
 
-        public DataAccess()
+        private static readonly DataAccess instance = new DataAccess();
+        private readonly MongoClient _client;
+        private readonly MongoServer _server;
+        private readonly MongoDatabase _db;
+
+        static DataAccess()
+        {
+        }
+
+        private DataAccess()
         {
             _client = new MongoClient("mongodb://localhost:27017");
-            _server = _client.GetServer();
+            // _server = _client.GetServer();
             _db = _server.GetDatabase("oRideDb");
         }
+
+        public static DataAccess Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+
 
         private string GetCollectionName<T>()
         {

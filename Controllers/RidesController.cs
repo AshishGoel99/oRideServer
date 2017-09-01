@@ -14,10 +14,11 @@ namespace oServer.Controllers
             _access = access;
         }
         // GET api/values/5
-        [HttpGet("{latlng}")]
-        public string Get(string latlng)
+        [HttpGet("{lat}/{lng}")]
+        public UserModels.Ride Get(string lat, string lng)
         {
-            return "value";
+            var ride = _access.GetAll<DbModels.Ride>();
+            return null;
         }
 
         // POST api/values

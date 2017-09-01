@@ -2,6 +2,20 @@
   "version": 3,
   "targets": {
     ".NETCoreApp,Version=v2.0": {
+      "JWT/3.10.0": {
+        "type": "package",
+        "dependencies": {
+          "NETStandard.Library": "1.6.1",
+          "Newtonsoft.Json": "9.0.1",
+          "System.Security.Cryptography.Csp": "4.3.0"
+        },
+        "compile": {
+          "lib/netstandard1.3/JWT.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard1.3/JWT.dll": {}
+        }
+      },
       "Libuv/1.10.0": {
         "type": "package",
         "dependencies": {
@@ -4354,7 +4368,7 @@
           "System.Threading": "4.3.0"
         },
         "compile": {
-          "ref/netstandard1.3/_._": {}
+          "ref/netstandard1.3/System.Security.Cryptography.Csp.dll": {}
         },
         "runtimeTargets": {
           "runtimes/unix/lib/netstandard1.3/System.Security.Cryptography.Csp.dll": {
@@ -4910,6 +4924,17 @@
     }
   },
   "libraries": {
+    "JWT/3.10.0": {
+      "sha512": "zuZxBs66UmRU/WH6qMsFcPUuNc2x2c1pXD6nv0I8iyrLRRPFsfHx/hq0sMHInuLoJKxl91fH16IFGO5rrKUx5w==",
+      "type": "package",
+      "path": "jwt/3.10.0",
+      "files": [
+        "jwt.3.10.0.nupkg.sha512",
+        "jwt.nuspec",
+        "lib/net462/JWT.dll",
+        "lib/netstandard1.3/JWT.dll"
+      ]
+    },
     "Libuv/1.10.0": {
       "sha512": "GsCf4q+eyaI49rCPlgYxdxa1SQCysXFFdSJWdstrwxytg4+VPYLYrXD4AT2rjHVJ+UF7SSWX9CapWEYaU4ejVQ==",
       "type": "package",
@@ -12877,7 +12902,10 @@
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v2.0": [
+      "JWT >= 3.10.0",
       "Microsoft.AspNetCore.All >= 2.0.0",
+      "Microsoft.AspNetCore.Authentication.JwtBearer >= 2.0.0",
+      "Microsoft.AspNetCore.Identity.EntityFrameworkCore >= 2.0.0",
       "Microsoft.NETCore.App >= 2.0.0",
       "MongoDB.Bson >= 2.3.0",
       "mongocsharpdriver >= 2.3.0"
@@ -12890,11 +12918,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "t:\\oServer\\oServer.csproj",
+      "projectUniqueName": "T:\\oServer\\oServer.csproj",
       "projectName": "oServer",
-      "projectPath": "t:\\oServer\\oServer.csproj",
+      "projectPath": "T:\\oServer\\oServer.csproj",
       "packagesPath": "C:\\Users\\ashish.goel\\.nuget\\packages\\",
-      "outputPath": "t:\\oServer\\obj\\",
+      "outputPath": "T:\\oServer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -12927,7 +12955,19 @@
             "version": "2.0.0",
             "autoReferenced": true
           },
+          "JWT": {
+            "target": "Package",
+            "version": "3.10.0"
+          },
           "Microsoft.AspNetCore.All": {
+            "target": "Package",
+            "version": "2.0.0"
+          },
+          "Microsoft.AspNetCore.Authentication.JwtBearer": {
+            "target": "Package",
+            "version": "2.0.0"
+          },
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
             "target": "Package",
             "version": "2.0.0"
           },
