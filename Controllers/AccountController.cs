@@ -1,20 +1,15 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using System;
 using oServer.UserModels;
-using JWT;
-using JWT.Serializers;
-using JWT.Algorithms;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using oServer.DbModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace oServer.Controllers
 {
@@ -29,56 +24,67 @@ namespace oServer.Controllers
             _options = optionsAccessor.Value;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> SignIn([FromBody] Credentials Credentials)
         {
             if (ModelState.IsValid)
             {
-                DataAccess.Instance.GetAll<User>().Where(u => u.Email == Credentials.Email && u)
-                var result = await _signInManager.PasswordSignInAsync(Credentials.Email, Credentials.Password, false, false);
-                if (result.Succeeded)
+                var user = GetUser(Credentials.Email);
+
+
+                // var result = DataAccess.Instance.GetAll<User>()
+                //     .Where(u => u.Email == Credentials.Email);
+
+                // User user = null;
+                if (user == null)
                 {
-                    var user = await _userManager.FindByEmailAsync(Credentials.Email);
-
-                    var claims = new[]
+                    if (Register(Credentials))
+                    {
+                        user = new User
                         {
-                            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                            Name = Credentials.Name,
+                            Email = Credentials.Email
                         };
-
-                    var token = GenerateToken(claims);
-
-                    return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+                    }
                 }
+
+                var claims = new[]
+                    {
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    };
+
+                var token = GenerateToken(claims);
+
+                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
             }
             return BadRequest("Invalid Input");
         }
 
-        [AllowAnonymous]
-        [HttpPost]
-        public async Task<IActionResult> Register([FromBody] Credentials model)
+        private User GetUser(string email)
         {
-            if (ModelState.IsValid)
+            var result = MySqlDataAccess.Instance
+                                .Get("Select * from users where email=@p1", email);
+
+            User user = null;
+            if (result != null && result.Tables.Count > 0 && result.Tables[0] != null)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-
-                if (user != null)
+                user = new User
                 {
-                    var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-                    if (result.Succeeded)
-                    {
-                        var claims = new[]
-                        {
-                            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        };
-
-                        var token = GenerateToken(claims);
-                        return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-                    }
-                }
+                    Email = email,
+                    Name = Convert.ToString(result.Tables[0].Rows[0]["Name"])
+                };
             }
-            return BadRequest("Could not create token");
+            return user;
+        }
+
+        private bool Register(Credentials model)
+        {
+            var result = MySqlDataAccess.Instance
+                .Execute("insert into users values(@p1,@p2,@p3)", Guid.NewGuid(), model.Name, model.Email);
+
+            return result == 1;
         }
 
         private JwtSecurityToken GenerateToken(Claim[] claims)

@@ -9,7 +9,5 @@ namespace oServer.DbModels
         public string Name { get; set; }
         [BsonElement("Email")]
         public string Email { get; set; }
-        [BsonElement("Password")]
-        public string Password { get; set; }
     }
 }

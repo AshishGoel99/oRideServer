@@ -54,6 +54,12 @@ namespace oServer
             return _db.GetCollection<T>(col).FindAll();
         }
 
+        public IEnumerable<T> GetAll<T>(IMongoQuery query)
+        {
+            var col = GetCollectionName<T>();
+            return _db.GetCollection<T>(col).Find(query);
+        }
+
 
         public T GetItem<T>(ObjectId id) where T : Base
         {
