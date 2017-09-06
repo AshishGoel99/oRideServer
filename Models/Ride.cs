@@ -53,7 +53,7 @@ namespace oServer.UserModels
         public string ReturnTime { get; set; }
         public short ScheduleType { get; set; }
         public List<short> Days { get; set; }
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
         // public short Duration { get; set; }
         public Location From { get; set; }
         public Location To { get; set; }

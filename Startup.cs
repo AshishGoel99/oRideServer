@@ -30,9 +30,10 @@ namespace oServer
 
                     cfg.TokenValidationParameters = new TokenValidationParameters()
                     {
-                        ValidIssuer = Configuration["Tokens:Issuer"],
-                        ValidAudience = Configuration["Tokens:Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Tokens:Key"]))
+                        // ValidIssuer = Configuration.GetSection("JWTSettings").GetSection("Issuer").Value,
+                        // ValidAudience = Configuration.GetSection("JWTSettings").GetSection("Audience").Value,
+                        // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                        //     Configuration.GetSection("JWTSettings").GetSection("Key").Value))
                     };
                 });
 

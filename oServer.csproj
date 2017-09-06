@@ -9,7 +9,7 @@
     <!-- <PackageReference Include="JWT" Version="3.10.0" /> -->
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.0" />
     <PackageReference Include="mongocsharpdriver" Version="2.4.4" />
-    <PackageReference Include="MySqlConnector" Version="0.26.0" />
+    <PackageReference Include="MySql.Data" Version="6.9.9" />
     <!-- <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="2.0.0" /> -->
   </ItemGroup>

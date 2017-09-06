@@ -12,7 +12,6 @@ namespace oServer.UserModels
         [EmailAddress]
         public string Email { get; set; }
 
-        [Required]
         public string AccessToken { get; set; }
     }
 }

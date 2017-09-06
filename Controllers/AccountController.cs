@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using System;
@@ -26,6 +25,7 @@ namespace oServer.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("[action]")]
         public async Task<IActionResult> SignIn([FromBody] Credentials Credentials)
         {
             if (ModelState.IsValid)

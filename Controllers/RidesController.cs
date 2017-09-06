@@ -40,8 +40,8 @@ namespace oServer.Controllers
             {
                 rides.Add(new UserModels.Ride
                 {
+                    Date = Convert.ToString(item["date"]),
                     ContactNo = Convert.ToString(item["ContactNo"])
-
                 });
             }
 
@@ -51,7 +51,7 @@ namespace oServer.Controllers
             //             .Select(r => GenerateUserModel(r))
             //             .Take(5);
             // return rides;
-            return null;
+            return rides;
         }
 
         // private IMongoQuery queryRides(SearchQuery query)

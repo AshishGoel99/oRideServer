@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using oServer.DbModels;
 
@@ -10,16 +11,23 @@ namespace oServer
     {
         // MongoClient _client;
 
-        private static readonly MySqlDataAccess instance = new MySqlDataAccess();
+        private static readonly MySqlDataAccess instance = new MySqlDataAccess(
+            new ConfigurationBuilder()
+                //  .SetBasePath(env.ContentRootPath)
+                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                 .AddJsonFile($"appsettings.json", optional: true)
+                 .AddEnvironmentVariables()
+                 .Build());
         private readonly MySqlConnection _connection;
 
         static MySqlDataAccess()
         {
         }
 
-        private MySqlDataAccess()
+        private MySqlDataAccess(IConfiguration configuration)
         {
-            _connection = new MySqlConnection(Configuration.Config["DbConnection:ConnectionString"]);
+            var conStr=configuration.GetSection("DbConnection").GetSection("ConnectionString").Value;
+            _connection = new MySqlConnection(conStr);
         }
 
         public static MySqlDataAccess Instance
