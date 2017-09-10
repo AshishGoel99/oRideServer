@@ -30,14 +30,15 @@ namespace oServer
 
                     cfg.TokenValidationParameters = new TokenValidationParameters()
                     {
-                        // ValidIssuer = Configuration.GetSection("JWTSettings").GetSection("Issuer").Value,
-                        // ValidAudience = Configuration.GetSection("JWTSettings").GetSection("Audience").Value,
-                        // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                        //     Configuration.GetSection("JWTSettings").GetSection("Key").Value))
+                        ValidIssuer = Configuration.GetValue<string>("JWTSettings:Issuer"),
+                        ValidAudience = Configuration.GetValue<string>("JWTSettings:Audience"),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                            Configuration.GetValue<string>("JWTSettings:SecretKey")))
                     };
                 });
 
-            services.AddTransient<DataAccess>();
+            services.AddTransient<MySqlDataAccess>();
+            services.AddCors();
             services.AddMvc();
         }
 
@@ -49,8 +50,8 @@ namespace oServer
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
             app.UseAuthentication();
+            app.UseMvc();
         }
     }
 }

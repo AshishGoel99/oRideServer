@@ -1,13 +1,12 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+// using MongoDB.Bson;
+// using MongoDB.Bson.Serialization.Attributes;
 
 namespace oServer.DbModels
 {
-    public class User : Base
+    public class User
     {
-        [BsonElement("UserName")]
+        public string Id { get; set; }
         public string Name { get; set; }
-        [BsonElement("Email")]
         public string Email { get; set; }
     }
 }

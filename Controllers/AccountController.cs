@@ -9,6 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using oServer.DbModels;
 using Microsoft.AspNetCore.Authorization;
+using System.Data.Common;
 
 namespace oServer.Controllers
 {
@@ -28,60 +29,63 @@ namespace oServer.Controllers
         [Route("[action]")]
         public async Task<IActionResult> SignIn([FromBody] Credentials Credentials)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return BadRequest("Invalid Input");
+
+            var user = GetUser(Credentials.Email);
+
+            if (user == null)
             {
-                var user = GetUser(Credentials.Email);
+                if (string.IsNullOrWhiteSpace(Credentials.AccessToken))
+                    return BadRequest();
 
+                //also needs to validate access token here.
 
-                // var result = DataAccess.Instance.GetAll<User>()
-                //     .Where(u => u.Email == Credentials.Email);
-
-                // User user = null;
-                if (user == null)
+                user = new User
                 {
-                    if (Register(Credentials))
-                    {
-                        user = new User
-                        {
-                            Name = Credentials.Name,
-                            Email = Credentials.Email
-                        };
-                    }
-                }
+                    Id = Guid.NewGuid().ToString(),
+                    Name = Credentials.Name,
+                    Email = Credentials.Email
+                };
 
-                var claims = new[]
-                    {
-                        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                if (!await Register(Credentials))
+                {
+                    return StatusCode(500);
+                }
+            }
+
+            var claims = new[]
+                {
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Name),
+                        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                        new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                     };
 
-                var token = GenerateToken(claims);
+            var token = GenerateToken(claims);
 
-                return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
-            }
-            return BadRequest("Invalid Input");
+            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
         }
 
         private User GetUser(string email)
         {
-            var result = MySqlDataAccess.Instance
-                                .Get("Select * from users where email=@p1", email);
-
             User user = null;
-            if (result != null && result.Tables.Count > 0 && result.Tables[0] != null)
-            {
-                user = new User
-                {
-                    Email = email,
-                    Name = Convert.ToString(result.Tables[0].Rows[0]["Name"])
-                };
-            }
+
+            MySqlDataAccess.Instance.Get("Select * from users where email=@p1",
+                                parameters: email, readFromReader: async (DbDataReader reader) =>
+                                {
+                                    user = new User()
+                                    {
+                                        Id = await reader.GetFieldValueAsync<string>(0),
+                                        Name = await reader.GetFieldValueAsync<string>(1),
+                                        Email = await reader.GetFieldValueAsync<string>(2)
+                                    };
+                                });
             return user;
         }
 
-        private bool Register(Credentials model)
+        private async Task<bool> Register(Credentials model)
         {
-            var result = MySqlDataAccess.Instance
+            var result = await MySqlDataAccess.Instance
                 .Execute("insert into users values(@p1,@p2,@p3)", Guid.NewGuid(), model.Name, model.Email);
 
             return result == 1;

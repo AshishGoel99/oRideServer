@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -13,10 +16,8 @@ namespace oServer
 
         private static readonly MySqlDataAccess instance = new MySqlDataAccess(
             new ConfigurationBuilder()
-                //  .SetBasePath(env.ContentRootPath)
-                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                 .AddJsonFile($"appsettings.json", optional: true)
-                 .AddEnvironmentVariables()
+                 .SetBasePath(Directory.GetCurrentDirectory())
+                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                  .Build());
         private readonly MySqlConnection _connection;
 
@@ -26,8 +27,7 @@ namespace oServer
 
         private MySqlDataAccess(IConfiguration configuration)
         {
-            var conStr=configuration.GetSection("DbConnection").GetSection("ConnectionString").Value;
-            _connection = new MySqlConnection(conStr);
+            _connection = new MySqlConnection(configuration.GetValue<string>("DbConnection:ConnectionString"));
         }
 
         public static MySqlDataAccess Instance
@@ -38,18 +38,18 @@ namespace oServer
             }
         }
 
-        private async void OpenConnection()
+        private void OpenConnection()
         {
             if (_connection.State == ConnectionState.Closed)
-                _connection.OpenAsync();
+                _connection.Open();
         }
-        private async void CloseConnection()
+        private void CloseConnection()
         {
             if (_connection.State == ConnectionState.Open)
-                _connection.CloseAsync();
+                _connection.Close();
         }
 
-        public int Execute(string query, params object[] parameters)
+        public async Task<int> Execute(string query, params object[] parameters)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace oServer
                     for (int i = 0; i < parameters.Length; i++)
                         command.Parameters.AddWithValue("@p" + (i + 1), parameters[i]);
 
-                    return command.ExecuteNonQuery();
+                    return await command.ExecuteNonQueryAsync();
                 }
             }
             finally
@@ -68,20 +68,29 @@ namespace oServer
             }
         }
 
-        public DataSet Get(string query, params object[] parameters)
+        public async void Get(string query, Func<DbDataReader, Task> readFromReader, params object[] parameters)
         {
-            var dataset = new DataSet();
             try
             {
                 OpenConnection();
-                using (var adap = new MySqlDataAdapter(query, _connection))
+                using (var command = new MySqlCommand(query, _connection))
                 {
                     for (int i = 0; i < parameters.Length; i++)
-                        adap.SelectCommand.Parameters.AddWithValue("@p" + (i + 1), parameters[i]);
-                    adap.Fill(dataset);
-                }
+                        command.Parameters.AddWithValue("@p" + (i + 1), parameters[i]);
 
-                return dataset;
+                    var reader = await command.ExecuteReaderAsync();
+
+                    using (reader)
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            await readFromReader(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
             }
             finally
             {
