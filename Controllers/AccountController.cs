@@ -10,9 +10,11 @@ using System.Security.Claims;
 using oServer.DbModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Data.Common;
+using Microsoft.AspNetCore.Cors;
 
 namespace oServer.Controllers
 {
+    [EnableCors("AllowSpecificOrigin")]
     [Route("api/[controller]")]
     public class AccountController : Controller
     {
@@ -56,7 +58,7 @@ namespace oServer.Controllers
 
             var claims = new[]
                 {
-                        new Claim(JwtRegisteredClaimNames.Sub, user.Name),
+                        new Claim(JwtRegisteredClaimNames.GivenName, user.Name),
                         new Claim(JwtRegisteredClaimNames.Email, user.Email),
                         new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                     };
@@ -99,7 +101,7 @@ namespace oServer.Controllers
             return new JwtSecurityToken(_options.Issuer,
               _options.Audience,
               claims,
-              expires: DateTime.Now.AddMinutes(30),
+              expires: DateTime.Now.AddHours(24),
               signingCredentials: creds);
         }
     }

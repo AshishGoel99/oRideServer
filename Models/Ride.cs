@@ -20,8 +20,8 @@ namespace oServer.UserModels
         public short Fare { get; set; }
         public string ContactNo { get; set; }
         public string Bounds { get; set; }
-        public string[] Waypoints { get; set; }
-        public List<List<decimal>> PolyLine { get; set; }
-        public List<List<List<decimal>>> PolyGon { get; set; }
+        public List<string> Waypoints { get; set; }
+        public string PolyLine { get; set; }
+        public string PolyGon { get; set; }
     }
 }

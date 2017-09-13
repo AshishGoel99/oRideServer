@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using oServer.UserModels;
 
@@ -11,6 +13,7 @@ namespace oServer.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
+    [EnableCors("AllowSpecificOrigin")]
     public class RidesController : Controller
     {
         public RidesController()
@@ -57,18 +60,21 @@ namespace oServer.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]UserModels.Ride ride)
         {
-            while (ride.Waypoints.Length < 3)
-                ride.Waypoints = (string[])ride.Waypoints.Append(string.Empty);
+            var uId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            while (ride.Waypoints.Count < 3)
+                ride.Waypoints.Add(null);
 
             var result = await MySqlDataAccess.Instance.Execute(
                 "INSERT INTO oride.rides(Id, PolyLine, Bounds, Polygon, GoTime, ReturnTime, ScheduleType, Date," +
-                "Days, SeatsAvail, Price, ContactNo, FromLatLng, ToLatLng, Way1LatLng, Way2LatLng, Way3LatLng, From," +
-                "To, UserId, VehicleNo) VALUES(@p1, @p2, @p3, GeomFromText(@p4), @p5, @p6, @p7, @p8, @p9, @p10, @p11," +
-                "@p12, GeomFromText(@p13), GeomFromText(@p14), @p15, @p16, @p17, @18, @p19, @p20, @p21, @p22, @p23, @p24)",
+                "Days, SeatsAvail, Price, ContactNo, FromLatLng, ToLatLng, Way1LatLng, Way2LatLng, Way3LatLng, `From`," +
+                "`To`, UserId, VehicleNo) VALUES(@p1, @p2, @p3, GeomFromText(@p4), @p5, @p6, @p7, @p8, @p9, @p10, @p11," +
+                "@p12, GeomFromText(@p13), GeomFromText(@p14), GeomFromText(@p15), GeomFromText(@p16), GeomFromText(@p17),"+ 
+                "@p18, @p19, @p20, @p21)",
                 Guid.NewGuid(), ride.PolyLine, ride.Bounds, ride.PolyGon, ride.StartTime, ride.ReturnTime,
-                ride.ScheduleType, ride.Date, ride.Days, ride.SeatsAvail, ride.Fare, ride.ContactNo, ride.From.LatLng, 
-                ride.To.LatLng, ride.Waypoints[0], ride.Waypoints[1], ride.Waypoints[2], ride.From.Name, ride.To.Name, 
-                User.Identity.Name, ride.Vehicle);
+                ride.ScheduleType, ride.Date, string.Join(',', ride.Days), ride.SeatsAvail, ride.Fare, ride.ContactNo, ride.From.LatLng,
+                ride.To.LatLng, ride.Waypoints[0], ride.Waypoints[1], ride.Waypoints[2], ride.From.Name, ride.To.Name,
+                uId, ride.Vehicle);
 
             return result == 1 ? Ok() : StatusCode(500);
         }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Serialization;
 
 namespace oServer
 {
@@ -21,6 +22,14 @@ namespace oServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<JWTSettings>(Configuration.GetSection("JWTSettings"));
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder => builder.WithOrigins("http://localhost:8100")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod());
+            });
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(cfg =>
