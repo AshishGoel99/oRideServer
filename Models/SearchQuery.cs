@@ -5,10 +5,12 @@ namespace oServer.UserModels
     public class SearchQuery
     {
         [Required]
-        public Location From { get; set; }
+        public string From { get; set; }
         [Required]
-        public Location To { get; set; }
+        public string To { get; set; }
+        [Required]
         public short Frame { get; set; }
+        [Required]
         public string Time { get; set; }
     }
 }

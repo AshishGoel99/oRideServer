@@ -21,39 +21,39 @@ namespace oServer.Controllers
         }
         // GET api/values/5
         // [HttpGet]
-        public IEnumerable<UserModels.Ride> Get([FromQuery]SearchQuery query)
+        public  IActionResult Get([FromQuery]SearchQuery query)
         {
-            // var u = User.Ide.FindAll(System.Security.Claims.ClaimTypes.NameIdentifier);
-
             if (!ModelState.IsValid)
-                return null;
+                return BadRequest();
 
-            var timeOfDay = DateTime.Now.TimeOfDay.Subtract(new TimeSpan(1, 0, 0));
+            var timeOfDay = DateTime.Parse(query.Time)
+                                .TimeOfDay.Subtract(new TimeSpan(1, 0, 0)); //to check if someone left 1 hour earlier
             var timeBuffer = timeOfDay.Add(new TimeSpan(query.Frame + 1, 0, 0));
             var rides = new List<UserModels.Ride>();
 
-            var q = "select * from rides where " +
-                            "SeatsAvail>0 and " + //Seats available
-                            "((scheduleType=0 and days like '%@p3%') or (scheduleType=1 and date = @p4) )" +//Schedule check
-                            "ST_CONTAINS(polygon, GeomFromText(@p1) and ST_CONTAINS(polygon, GeomFromText(@p2)" + //region check
-                            "((ST_Distance(GeomFromText(@p1),FromLatLng) < ST_Distance(GeomFromText(@p2),ToLatLng) " + //in Go Direction
-                            "and GoTime >=@p5 and GoTime<=@p6) " + // and also go time
-                            "or " +
-                            "(ST_Distance(GeomFromText(@p1),FromLatLng) < ST_Distance(GeomFromText(@p2),ToLatLng) " + //in Return Direction
-                            "and ReturnTime >=@p5 and ReturnTime<=@p6))"; // and also return time
+            var q = "select * from rides " +
+                    "where " +
+                        "SeatsAvail>0" + //Seats available
+                        " and ((scheduleType=0 and days like '%@p3%') or (scheduleType=1 and date = @p4))" +//Schedule check
+                        " and ST_CONTAINS(polygon, GeomFromText(@p1)) and ST_CONTAINS(polygon, GeomFromText(@p2))" + //region check
+                        " and ((ST_Distance(GeomFromText(@p1),FromLatLng) < ST_Distance(GeomFromText(@p2),ToLatLng)" + //in Go Direction
+                                " and GoTime >=@p5 and GoTime<=@p6)" + // and also go time
+                            " or " +
+                            "(ST_Distance(GeomFromText(@p1),ToLatLng) < ST_Distance(GeomFromText(@p2),FromLatLng)" + //in Return Direction
+                                " and ReturnTime >=@p5 and ReturnTime<=@p6))"; // and also return time
 
             MySqlDataAccess.Instance.Get(q,
                             async (DbDataReader reader) =>
                             {
                                 rides.Add(new UserModels.Ride
                                 {
-                                    Date = await reader.GetFieldValueAsync<string>(0), //Convert.ToString(item["date"]),
-                                    ContactNo = await reader.GetFieldValueAsync<string>(1)//Convert.ToString(item["ContactNo"])
+                                    Date = await reader.GetFieldValueAsync<string>(0),
+                                    ContactNo = await reader.GetFieldValueAsync<string>(1)
                                 });
                             },
-                            query.From.LatLng, query.To.LatLng, (int)DateTime.Today.DayOfWeek, DateTime.Now.Date, timeOfDay, timeBuffer);
+                            query.From, query.To, (int)DateTime.Today.DayOfWeek, DateTime.Now.Date, timeOfDay, timeBuffer);
 
-            return rides;
+            return Ok(rides);
         }
 
         // POST api/values
@@ -69,7 +69,7 @@ namespace oServer.Controllers
                 "INSERT INTO oride.rides(Id, PolyLine, Bounds, Polygon, GoTime, ReturnTime, ScheduleType, Date," +
                 "Days, SeatsAvail, Price, ContactNo, FromLatLng, ToLatLng, Way1LatLng, Way2LatLng, Way3LatLng, `From`," +
                 "`To`, UserId, VehicleNo) VALUES(@p1, @p2, @p3, GeomFromText(@p4), @p5, @p6, @p7, @p8, @p9, @p10, @p11," +
-                "@p12, GeomFromText(@p13), GeomFromText(@p14), GeomFromText(@p15), GeomFromText(@p16), GeomFromText(@p17),"+ 
+                "@p12, GeomFromText(@p13), GeomFromText(@p14), GeomFromText(@p15), GeomFromText(@p16), GeomFromText(@p17)," +
                 "@p18, @p19, @p20, @p21)",
                 Guid.NewGuid(), ride.PolyLine, ride.Bounds, ride.PolyGon, ride.StartTime, ride.ReturnTime,
                 ride.ScheduleType, ride.Date, string.Join(',', ride.Days), ride.SeatsAvail, ride.Fare, ride.ContactNo, ride.From.LatLng,

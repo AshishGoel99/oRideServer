@@ -38,19 +38,22 @@ namespace oServer.Controllers
 
             if (user == null)
             {
-                if (string.IsNullOrWhiteSpace(Credentials.AccessToken))
+                if (string.IsNullOrWhiteSpace(Credentials.FbToken))
                     return BadRequest();
 
                 //also needs to validate access token here.
-
+                var id = Guid.NewGuid().ToString();
                 user = new User
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = Credentials.Name,
-                    Email = Credentials.Email
+                    Id = id,
+                    FirstName = Credentials.FirstName,
+                    Email = Credentials.Email,
+                    FbId = Credentials.FbId,
+                    Picture = Credentials.Picture,
+                    UserName = Credentials.UserName
                 };
 
-                if (!await Register(Credentials))
+                if (!await Register(Credentials, id))
                 {
                     return StatusCode(500);
                 }
@@ -58,7 +61,7 @@ namespace oServer.Controllers
 
             var claims = new[]
                 {
-                        new Claim(JwtRegisteredClaimNames.GivenName, user.Name),
+                        new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
                         new Claim(JwtRegisteredClaimNames.Email, user.Email),
                         new Claim(JwtRegisteredClaimNames.NameId, user.Id),
                     };
@@ -72,23 +75,27 @@ namespace oServer.Controllers
         {
             User user = null;
 
-            MySqlDataAccess.Instance.Get("Select * from users where email=@p1",
+            MySqlDataAccess.Instance.Get("Select Id, FirstName, Email, UserName, FbId, Picture from users where email=@p1",
                                 parameters: email, readFromReader: async (DbDataReader reader) =>
                                 {
                                     user = new User()
                                     {
                                         Id = await reader.GetFieldValueAsync<string>(0),
-                                        Name = await reader.GetFieldValueAsync<string>(1),
-                                        Email = await reader.GetFieldValueAsync<string>(2)
+                                        FirstName = await reader.GetFieldValueAsync<string>(1),
+                                        Email = await reader.GetFieldValueAsync<string>(2),
+                                        UserName = await reader.GetFieldValueAsync<string>(3),
+                                        FbId = await reader.GetFieldValueAsync<string>(4),
+                                        Picture = await reader.GetFieldValueAsync<string>(5)
                                     };
                                 });
             return user;
         }
 
-        private async Task<bool> Register(Credentials model)
+        private async Task<bool> Register(Credentials model, string id)
         {
             var result = await MySqlDataAccess.Instance
-                .Execute("insert into users values(@p1,@p2,@p3)", Guid.NewGuid(), model.Name, model.Email);
+                .Execute("insert into users values(@p1,@p2,@p3,@p4,@p5,@p6)",
+                    id, model.FirstName, model.Email, model.UserName, model.FbId, model.Picture);
 
             return result == 1;
         }
