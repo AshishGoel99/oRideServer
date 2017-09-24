@@ -17,11 +17,12 @@ namespace oServer.UserModels
         public short SeatsAvail { get; set; }
         public string Note { get; set; }
         public string Vehicle { get; set; }
-        public short Fare { get; set; }
+        public float Fare { get; set; }
         public string ContactNo { get; set; }
         public string Bounds { get; set; }
         public List<string> Waypoints { get; set; }
         public string PolyLine { get; set; }
         public string PolyGon { get; set; }
+        public string Id { get; set; }
     }
 }

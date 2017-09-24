@@ -11,6 +11,8 @@ using oServer.DbModels;
 using Microsoft.AspNetCore.Authorization;
 using System.Data.Common;
 using Microsoft.AspNetCore.Cors;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace oServer.Controllers
 {
@@ -34,7 +36,7 @@ namespace oServer.Controllers
             if (!ModelState.IsValid)
                 return BadRequest("Invalid Input");
 
-            var user = GetUser(Credentials.Email);
+            var user = await GetUser(Credentials.Email);
 
             if (user == null)
             {
@@ -59,6 +61,8 @@ namespace oServer.Controllers
                 }
             }
 
+            var userData = GetUserData(user.Id);
+
             var claims = new[]
                 {
                         new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
@@ -68,24 +72,77 @@ namespace oServer.Controllers
 
             var token = GenerateToken(claims);
 
-            return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                data = await userData
+            });
         }
 
-        private User GetUser(string email)
+        private async Task<UserData> GetUserData(string id)
+        {
+            UserData data = new UserData();
+            await MySqlDataAccess.Instance.Get(
+                "Select " +
+                    "rides.Id, firstname, GoTime, ReturnTime, `from`, ST_AsText(fromlatlng), `to`, ST_AsText(tolatlng), note, PolyLine, " +
+                    "ScheduleType, Days, `Date`, SeatsAvail, Price, VehicleNo, ContactNo, ST_AsText(Way1LatLng), ST_AsText(Way2LatLng), " +
+                    "ST_AsText(Way3LatLng), Bounds, ST_AsText(Polygon) " +
+                "from rides join users on rides.userid=users.id where users.id=@p1",
+                                parameters: id, readFromReader: async (DbDataReader reader) =>
+                                {
+                                    data.Rides.Add(new Ride
+                                    {
+                                        Id = await reader.GetValueFromIndex<string>(0),
+                                        Owner = await reader.GetValueFromIndex<string>(1),
+                                        StartTime = (await reader.GetValueFromIndex<TimeSpan>(2)).ToString(),
+                                        ReturnTime = (await reader.GetValueFromIndex<TimeSpan>(3)).ToString(),
+                                        From = new Location
+                                        {
+                                            Name = await reader.GetValueFromIndex<string>(4),
+                                            LatLng = await reader.GetValueFromIndex<string>(5),
+                                        },
+                                        To = new Location
+                                        {
+                                            Name = await reader.GetValueFromIndex<string>(6),
+                                            LatLng = await reader.GetValueFromIndex<string>(7),
+                                        },
+                                        Note = await reader.GetValueFromIndex<string>(8),
+                                        PolyLine = await reader.GetValueFromIndex<string>(9),
+                                        ScheduleType = await reader.GetValueFromIndex<short>(10),
+                                        Days = (await reader.GetValueFromIndex<string>(11)).Split(',')
+                                            .Select(c => { return short.Parse(c); }).ToList(),
+                                        Date = await reader.GetValueFromIndex<string>(12),
+                                        SeatsAvail = await reader.GetValueFromIndex<short>(13),
+                                        Fare = await reader.GetValueFromIndex<float>(14),
+                                        Vehicle = await reader.GetValueFromIndex<string>(15),
+                                        ContactNo = await reader.GetValueFromIndex<string>(16),
+                                        Waypoints = new List<string>{
+                                                    await reader.GetValueFromIndex<string>(17),
+                                                    await reader.GetValueFromIndex<string>(18),
+                                                    await reader.GetValueFromIndex<string>(19)
+                                    },
+                                        Bounds = await reader.GetValueFromIndex<string>(20),
+                                        PolyGon = await reader.GetValueFromIndex<string>(21)
+                                    });
+                                });
+            return data;
+        }
+
+        private async Task<User> GetUser(string email)
         {
             User user = null;
 
-            MySqlDataAccess.Instance.Get("Select Id, FirstName, Email, UserName, FbId, Picture from users where email=@p1",
+            await MySqlDataAccess.Instance.Get("Select Id, FirstName, Email, UserName, FbId, Picture from users where email=@p1",
                                 parameters: email, readFromReader: async (DbDataReader reader) =>
                                 {
                                     user = new User()
                                     {
-                                        Id = await reader.GetFieldValueAsync<string>(0),
-                                        FirstName = await reader.GetFieldValueAsync<string>(1),
-                                        Email = await reader.GetFieldValueAsync<string>(2),
-                                        UserName = await reader.GetFieldValueAsync<string>(3),
-                                        FbId = await reader.GetFieldValueAsync<string>(4),
-                                        Picture = await reader.GetFieldValueAsync<string>(5)
+                                        Id = await reader.GetValueFromIndex<string>(0),
+                                        FirstName = await reader.GetValueFromIndex<string>(1),
+                                        Email = await reader.GetValueFromIndex<string>(2),
+                                        UserName = await reader.GetValueFromIndex<string>(3),
+                                        FbId = await reader.GetValueFromIndex<string>(4),
+                                        Picture = await reader.GetValueFromIndex<string>(5)
                                     };
                                 });
             return user;

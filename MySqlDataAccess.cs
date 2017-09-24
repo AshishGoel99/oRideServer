@@ -68,7 +68,7 @@ namespace oServer
             }
         }
 
-        public async void Get(string query, Func<DbDataReader, Task> readFromReader, params object[] parameters)
+        public async Task Get(string query, Func<DbDataReader, Task> readFromReader, params object[] parameters)
         {
             try
             {
@@ -78,9 +78,7 @@ namespace oServer
                     for (int i = 0; i < parameters.Length; i++)
                         command.Parameters.AddWithValue("@p" + (i + 1), parameters[i]);
 
-                    var reader = await command.ExecuteReaderAsync();
-
-                    using (reader)
+                    using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
                         {
@@ -96,6 +94,23 @@ namespace oServer
             {
                 CloseConnection();
             }
+        }
+    }
+
+    public static class ReaderExtension
+    {
+        public static async Task<T> GetValueFromIndex<T>(this DbDataReader reader, short index)
+        {
+            if (reader.IsDBNull(index))
+                return (T)defaultValue<T>();
+            return await reader.GetFieldValueAsync<T>(index);
+        }
+
+        private static object defaultValue<T>()
+        {
+            if (typeof(T) == typeof(string))
+                return string.Empty;
+            return default(T);
         }
     }
 }

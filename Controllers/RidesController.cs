@@ -21,20 +21,25 @@ namespace oServer.Controllers
         }
         // GET api/values/5
         // [HttpGet]
-        public  IActionResult Get([FromQuery]SearchQuery query)
+        public async Task<IActionResult> Get([FromQuery]SearchQuery query)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var timeOfDay = DateTime.Parse(query.Time)
-                                .TimeOfDay.Subtract(new TimeSpan(1, 0, 0)); //to check if someone left 1 hour earlier
+            var date = DateTime.Parse(query.Time);
+            var timeOfDay = date.TimeOfDay.Subtract(new TimeSpan(1, 0, 0)); //to check if someone left 1 hour earlier
             var timeBuffer = timeOfDay.Add(new TimeSpan(query.Frame + 1, 0, 0));
             var rides = new List<UserModels.Ride>();
 
-            var q = "select * from rides " +
+            var q = "select " +
+                        "rides.Id, firstname, GoTime, ReturnTime, `from`, ST_AsText(fromlatlng), `to`, ST_AsText(tolatlng), note, PolyLine, " +
+                        "ScheduleType, Days, `Date`, SeatsAvail, Price, VehicleNo, ContactNo, ST_AsText(Way1LatLng), ST_AsText(Way2LatLng), " +
+                        "ST_AsText(Way3LatLng), Bounds, ST_AsText(Polygon) " +
+                    "from rides " +
+                    "join users on rides.userid=users.id " +
                     "where " +
                         "SeatsAvail>0" + //Seats available
-                        " and ((scheduleType=0 and days like '%@p3%') or (scheduleType=1 and date = @p4))" +//Schedule check
+                        " and ((scheduleType=0 and days like @p3) or (scheduleType=1 and date = @p4))" +//Schedule check
                         " and ST_CONTAINS(polygon, GeomFromText(@p1)) and ST_CONTAINS(polygon, GeomFromText(@p2))" + //region check
                         " and ((ST_Distance(GeomFromText(@p1),FromLatLng) < ST_Distance(GeomFromText(@p2),ToLatLng)" + //in Go Direction
                                 " and GoTime >=@p5 and GoTime<=@p6)" + // and also go time
@@ -42,16 +47,45 @@ namespace oServer.Controllers
                             "(ST_Distance(GeomFromText(@p1),ToLatLng) < ST_Distance(GeomFromText(@p2),FromLatLng)" + //in Return Direction
                                 " and ReturnTime >=@p5 and ReturnTime<=@p6))"; // and also return time
 
-            MySqlDataAccess.Instance.Get(q,
+            await MySqlDataAccess.Instance.Get(q,
                             async (DbDataReader reader) =>
                             {
                                 rides.Add(new UserModels.Ride
                                 {
-                                    Date = await reader.GetFieldValueAsync<string>(0),
-                                    ContactNo = await reader.GetFieldValueAsync<string>(1)
+                                    Id = await reader.GetValueFromIndex<string>(0),
+                                    Owner = await reader.GetValueFromIndex<string>(1),
+                                    StartTime = (await reader.GetValueFromIndex<TimeSpan>(2)).ToString(),
+                                    ReturnTime = (await reader.GetValueFromIndex<TimeSpan>(3)).ToString(),
+                                    From = new Location
+                                    {
+                                        Name = await reader.GetValueFromIndex<string>(4),
+                                        LatLng = await reader.GetValueFromIndex<string>(5),
+                                    },
+                                    To = new Location
+                                    {
+                                        Name = await reader.GetValueFromIndex<string>(6),
+                                        LatLng = await reader.GetValueFromIndex<string>(7),
+                                    },
+                                    Note = await reader.GetValueFromIndex<string>(8),
+                                    PolyLine = await reader.GetValueFromIndex<string>(9),
+                                    ScheduleType = await reader.GetValueFromIndex<short>(10),
+                                    Days = (await reader.GetValueFromIndex<string>(11)).Split(',')
+                                            .Select(c => { return short.Parse(c); }).ToList(),
+                                    Date = await reader.GetValueFromIndex<string>(12),
+                                    SeatsAvail = await reader.GetValueFromIndex<short>(13),
+                                    Fare = await reader.GetValueFromIndex<float>(14),
+                                    Vehicle = await reader.GetValueFromIndex<string>(15),
+                                    ContactNo = await reader.GetValueFromIndex<string>(16),
+                                    Waypoints = new List<string>{
+                                                    await reader.GetValueFromIndex<string>(17),
+                                                    await reader.GetValueFromIndex<string>(18),
+                                                    await reader.GetValueFromIndex<string>(19)
+                                    },
+                                    Bounds = await reader.GetValueFromIndex<string>(20),
+                                    PolyGon = await reader.GetValueFromIndex<string>(21)
                                 });
                             },
-                            query.From, query.To, (int)DateTime.Today.DayOfWeek, DateTime.Now.Date, timeOfDay, timeBuffer);
+                            query.From, query.To, "%" + ((int)date.DayOfWeek - 1) + "%", date, timeOfDay, timeBuffer);
 
             return Ok(rides);
         }
@@ -79,16 +113,16 @@ namespace oServer.Controllers
             return result == 1 ? Ok() : StatusCode(500);
         }
 
-        // // PUT api/values/5
-        // [HttpPut("{id}")]
-        // public void Put(int id, [FromBody]string value)
-        // {
-        // }
+        // PUT api/values/5
+        [HttpPut("{id}")]
+        public void Put(int id, [FromBody]string value)
+        {
+        }
 
-        // // DELETE api/values/5
-        // [HttpDelete("{id}")]
-        // public void Delete(int id)
-        // {
-        // }
+        // DELETE api/values/5
+        [HttpDelete("{id}")]
+        public void Delete(int id)
+        {
+        }
     }
 }
