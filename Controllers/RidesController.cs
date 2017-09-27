@@ -20,7 +20,7 @@ namespace oServer.Controllers
         {
         }
         // GET api/values/5
-        // [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> Get([FromQuery]SearchQuery query)
         {
             if (!ModelState.IsValid)
@@ -94,10 +94,15 @@ namespace oServer.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]UserModels.Ride ride)
         {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
             var uId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             while (ride.Waypoints.Count < 3)
                 ride.Waypoints.Add(null);
+
+            var id = Guid.NewGuid().ToString();
 
             var result = await MySqlDataAccess.Instance.Execute(
                 "INSERT INTO oride.rides(Id, PolyLine, Bounds, Polygon, GoTime, ReturnTime, ScheduleType, Date," +
@@ -105,24 +110,46 @@ namespace oServer.Controllers
                 "`To`, UserId, VehicleNo) VALUES(@p1, @p2, @p3, GeomFromText(@p4), @p5, @p6, @p7, @p8, @p9, @p10, @p11," +
                 "@p12, GeomFromText(@p13), GeomFromText(@p14), GeomFromText(@p15), GeomFromText(@p16), GeomFromText(@p17)," +
                 "@p18, @p19, @p20, @p21)",
-                Guid.NewGuid(), ride.PolyLine, ride.Bounds, ride.PolyGon, ride.StartTime, ride.ReturnTime,
+                id, ride.PolyLine, ride.Bounds, ride.PolyGon, ride.StartTime, ride.ReturnTime,
                 ride.ScheduleType, ride.Date, string.Join(',', ride.Days), ride.SeatsAvail, ride.Fare, ride.ContactNo, ride.From.LatLng,
                 ride.To.LatLng, ride.Waypoints[0], ride.Waypoints[1], ride.Waypoints[2], ride.From.Name, ride.To.Name,
                 uId, ride.Vehicle);
 
-            return result == 1 ? Ok() : StatusCode(500);
+            if (result == 1)
+                return Ok(id);
+
+            return StatusCode(500);
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody]UserModels.Ride ride)
         {
+            var uId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await MySqlDataAccess.Instance.Execute(
+                "UPDATE oride.rides " +
+                "set GoTime=@p1, ReturnTime=@p2, Date=@p3, Days=@p4, SeatsAvail=@p5, Price=@p6 " +
+                "WHERE id=@p7 and userid=@p8",
+                ride.StartTime, ride.ReturnTime, ride.Date, string.Join(',', ride.Days), ride.SeatsAvail, ride.Fare, ride.Id, uId);
+
+            if (result == 1)
+                return Ok();
+
+            return StatusCode(500);
         }
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
+            var uId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var result = await MySqlDataAccess.Instance.Execute(
+                "DELETE from oride.rides " +
+                "WHERE id=@p1 and userid=@p2", id, uId);
+
+            if (result == 1)
+                return Ok();
+
+            return StatusCode(500);
         }
     }
 }
