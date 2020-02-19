@@ -1,0 +1,11 @@
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.1\oServer.deps.json
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.1\oServer.runtimeconfig.json
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.1\oServer.runtimeconfig.dev.json
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.1\oServer.dll
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.1\oServer.pdb
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.1\oServer.csprojAssemblyReference.cache
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.1\oServer.csproj.CoreCompileInputs.cache
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.1\oServer.AssemblyInfoInputs.cache
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.1\oServer.AssemblyInfo.cs
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.1\oServer.dll
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.1\oServer.pdb

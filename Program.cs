@@ -13,7 +13,7 @@ namespace oServer
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseUrls("http://192.168.0.106:5000")
+                .UseUrls("http://localhost:5000", "http://192.168.0.107:5000")
                 .Build();
     }
 }

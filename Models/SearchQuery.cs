@@ -9,7 +9,7 @@ namespace oServer.UserModels
         [Required]
         public string To { get; set; }
         [Required]
-        public short Frame { get; set; }
+        public short? Frame { get; set; }
         [Required]
         public string Time { get; set; }
     }

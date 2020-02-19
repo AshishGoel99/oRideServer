@@ -18,3 +18,15 @@ g:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.runtimeconfig.json
 g:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.runtimeconfig.dev.json
 g:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.dll
 g:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.pdb
+G:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.csprojAssemblyReference.cache
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.deps.json
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.runtimeconfig.json
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.runtimeconfig.dev.json
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.dll
+D:\oride ionic3\oRideServer\bin\Debug\netcoreapp2.0\oServer.pdb
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.csprojAssemblyReference.cache
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.csproj.CoreCompileInputs.cache
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.AssemblyInfoInputs.cache
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.AssemblyInfo.cs
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.dll
+D:\oride ionic3\oRideServer\obj\Debug\netcoreapp2.0\oServer.pdb

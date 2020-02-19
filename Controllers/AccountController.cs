@@ -16,8 +16,8 @@ using System.Linq;
 
 namespace oServer.Controllers
 {
-    [EnableCors("AllowSpecificOrigin")]
     [Route("api/[controller]")]
+    [EnableCors("AllowSpecificOrigin")]
     public class AccountController : Controller
     {
         private readonly JWTSettings _options;
@@ -52,7 +52,8 @@ namespace oServer.Controllers
                     Email = Credentials.Email,
                     FbId = Credentials.FbId,
                     Picture = Credentials.Picture,
-                    UserName = Credentials.UserName
+                    UserName = Credentials.UserName,
+                    PushId = Credentials.PushId
                 };
 
                 if (!await Register(Credentials, id))
@@ -132,7 +133,7 @@ namespace oServer.Controllers
         {
             User user = null;
 
-            await MySqlDataAccess.Instance.Get("Select Id, FirstName, Email, UserName, FbId, Picture from users where email=@p1",
+            await MySqlDataAccess.Instance.Get("Select Id, FirstName, Email, UserName, FbId, Picture, PushId from users where email=@p1",
                                 parameters: email, readFromReader: async (DbDataReader reader) =>
                                 {
                                     user = new User()
@@ -142,7 +143,8 @@ namespace oServer.Controllers
                                         Email = await reader.GetValueFromIndex<string>(2),
                                         UserName = await reader.GetValueFromIndex<string>(3),
                                         FbId = await reader.GetValueFromIndex<string>(4),
-                                        Picture = await reader.GetValueFromIndex<string>(5)
+                                        Picture = await reader.GetValueFromIndex<string>(5),
+                                        PushId = await reader.GetValueFromIndex<string>(6)
                                     };
                                 });
             return user;
@@ -151,8 +153,8 @@ namespace oServer.Controllers
         private async Task<bool> Register(Credentials model, string id)
         {
             var result = await MySqlDataAccess.Instance
-                .Execute("insert into users values(@p1,@p2,@p3,@p4,@p5,@p6)",
-                    id, model.FirstName, model.Email, model.UserName, model.FbId, model.Picture);
+                .Execute("insert into users values(@p1,@p2,@p3,@p4,@p5,@p6,@p7)",
+                    id, model.FirstName, model.Email, model.UserName, model.FbId, model.Picture, model.PushId);
 
             return result == 1;
         }

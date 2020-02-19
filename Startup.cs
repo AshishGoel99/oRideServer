@@ -26,7 +26,7 @@ namespace oServer
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigin",
-                    builder => builder.WithOrigins("http://localhost:8100")
+                    builder => builder.AllowAnyOrigin()
                                 .AllowAnyHeader()
                                 .AllowAnyMethod());
             });

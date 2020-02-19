@@ -62,6 +62,10 @@ namespace oServer
                     return await command.ExecuteNonQueryAsync();
                 }
             }
+            catch (Exception e)
+            {
+                return 0;
+            }
             finally
             {
                 CloseConnection();
@@ -95,6 +99,38 @@ namespace oServer
                 CloseConnection();
             }
         }
+
+        public async Task Get(StoredProcedures query, Func<DbDataReader, Task> readFromReader, MySqlParameter[] parameters)
+        {
+            try
+            {
+                OpenConnection();
+                using (var command = new MySqlCommand(query.ToString(), _connection))
+                {
+                    command.Parameters.AddRange(parameters);
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            await readFromReader(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+            }
+            finally
+            {
+                CloseConnection();
+            }
+        }
+    }
+
+    public enum StoredProcedures
+    {
+        GetTodayRides,
+        GetTomorrowRides
     }
 
     public static class ReaderExtension

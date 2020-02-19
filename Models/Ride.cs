@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace oServer.UserModels
@@ -24,5 +25,6 @@ namespace oServer.UserModels
         public string PolyLine { get; set; }
         public string PolyGon { get; set; }
         public string Id { get; set; }
+        public Boolean Active { get; set; }
     }
 }
